@@ -15,6 +15,9 @@ const zeroPaddedNumber = (num) => {
   return sprintf('%05d', num);
 };
 
+// Looks at given file and runs a callback with an error and the file data
+// If we're given an error,
+// That means there was either no data
 const readCounter = (callback) => {
   fs.readFile(exports.counterFile, (err, fileData) => {
     if (err) {
@@ -38,10 +41,15 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+exports.getNextUniqueId = (callback) => {
+  // First need to read the file
+  return readCounter((errValue, counter) => {
+    counter++;
+    writeCounter(counter, callback);
+  });
 };
+
+
 
 
 
