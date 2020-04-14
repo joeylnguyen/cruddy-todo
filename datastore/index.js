@@ -47,12 +47,27 @@ exports.create = (text, callback) => {
 // returns all the todo lists data in an array of objects
 // returns an empty array if there are no todos
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      throw ('error creating file');
+    } else {
+      var idList = _.map(files, (todo) => {
+        var dot = todo.lastIndexOf('.');
+        var id = todo.substring(0, dot);
+        // Possibly have to add one more step using readOne on each todo to get the contents and pass to object
+        return {id, text: id};
+      });
+      // Map files to an array of objects
+      callback(null, idList);
+    }
   });
-  callback(null, data);
 };
 
+// ['00001.txt', '00002.txt']
+// [{ id: '00001', text: '00001' }, { id: '00002', text: '00002' }]
+// var data = _.map(items, (text, id) => {
+//   return { id, text: };
+// });
 /* use fs.readdir(path[,options], callback)
 - reads the content of a directory - callback takes in (err, files)
 - files is an array of the names of the files in directory*/
