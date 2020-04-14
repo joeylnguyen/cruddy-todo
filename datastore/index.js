@@ -5,6 +5,9 @@ const counter = require('./counter');
 
 var items = {};
 
+const Promise = require('bluebird');
+const readFilePromise = Promise.promisify(fs.readFile);
+
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 // creates new file for a todo with a unique id as filename
@@ -43,25 +46,43 @@ exports.create = (text, callback) => {
 
 
 
-
 // returns all the todo lists data in an array of objects
 // returns an empty array if there are no todos
 exports.readAll = (callback) => {
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
       throw ('error reading directory');
-    } else {
-      var idList = _.map(files, (todo) => {
-        var dot = todo.lastIndexOf('.');
-        var id = todo.substring(0, dot);
-        // Possibly have to add one more step using readOne on each todo to get the contents and pass to object
-        return {id, text: id};
-      });
-      // Map files to an array of objects
-      callback(null, idList);
     }
+    // Map files to an array of objects
+    var idList = _.map(files, (todo) => {
+      var dot = todo.lastIndexOf('.');
+      var id = todo.substring(0, dot);
+
+      return readFilePromise(path.join(exports.dataDir, id + '.txt')).then(todoItem => {
+        return {id, text: todoItem.toString()};
+      });
+    });
+    Promise.all(idList).then(items => callback(null, items), err => callback(err));
   });
 };
+
+// On each file
+// Call readone on that file
+// Get text from that file
+// return an object with id, and text {id, text: 'hello'}
+// var todoItem = fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, toDoText)=> {
+//   if (err) {
+//     callback(new Error(`No item with id: ${id}`));
+//   } else {
+//     console.log('success ', toDoText);
+//     callback(null, {id, text: toDoText});
+// var item = {id, text: toDoText};
+// console.log(item);
+// return item;
+// onsole.log('todoItem: ', todoItem);
+// return todoItem;
+// console.log(idList);
+// callback(null, idList);
 
 // ['00001.txt', '00002.txt']
 // [{ id: '00001', text: '00001' }, { id: '00002', text: '00002' }]
@@ -99,9 +120,8 @@ data - is the contents of the file
 
 // Look up a todo item by ID
 // Update todo with new values
-// Do not change ID... possibly use readOne here?
+// Do not change ID
 exports.update = (id, text, callback) => {
-
   fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, todo) => {
     if (err) {
       callback(new Error(`No item with id: ${id}`));
@@ -110,7 +130,7 @@ exports.update = (id, text, callback) => {
         if (err) {
           throw ('error updating file');
         } else {
-          callback(null, todo);
+          callback(null, {id, text});
         }
       });
     }
@@ -133,17 +153,24 @@ exports.update = (id, text, callback) => {
 // does not change counter
 // should return an error for non-existant id
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  fs.unlink(path.join(exports.dataDir, id + '.txt'), (err) => {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      callback();
+    }
+  });
 };
 
-/* fs.unlinke(path, callback)
+// var item = items[id];
+// delete items[id];
+// if (!item) {
+//   // report an error if item not found
+//   callback(new Error(`No item with id: ${id}`));
+// } else {
+//   callback();
+// }
+/* fs.unlink(path, callback)
 - path
 - callback (err)
 
