@@ -101,14 +101,32 @@ data - is the contents of the file
 // Update todo with new values
 // Do not change ID... possibly use readOne here?
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+
+  fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, todo) => {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      fs.writeFile(path.join(exports.dataDir, id + '.txt'), text, 'utf8', (err) => {
+        if (err) {
+          throw ('error updating file');
+        } else {
+          callback(null, todo);
+        }
+      });
+    }
+  });
+
 };
+
+
+
+// var item = items[id];
+// if (!item) {
+//   callback(new Error(`No item with id: ${id}`));
+// } else {
+//   items[id] = text;
+//   callback(null, { id, text });
+// }
 
 // Look up a todo item by ID
 // delete that todo item
