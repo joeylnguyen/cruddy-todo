@@ -49,7 +49,7 @@ exports.create = (text, callback) => {
 exports.readAll = (callback) => {
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
-      throw ('error creating file');
+      throw ('error reading directory');
     } else {
       var idList = _.map(files, (todo) => {
         var dot = todo.lastIndexOf('.');
@@ -75,14 +75,23 @@ exports.readAll = (callback) => {
 // Looks up a todo item by ID
 // On success, it invoke a callback with the todo data
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+
+  fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, todoText) => {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      callback(null, {id, text: todoText});
+    }
+  });
+
 };
 
+// var text = items[id];
+// if (!text) {
+//   callback(new Error(`No item with id: ${id}`));
+// } else {
+//   callback(null, { id, text });
+// }
 /* fs.readFile(path[,options], callback)
 callback takes in (err, data)
 data - is the contents of the file
