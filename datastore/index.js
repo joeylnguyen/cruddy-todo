@@ -11,10 +11,38 @@ var items = {};
 // the contents of the file should only be the todo text
 // on a successful create, pass a todo object to the callback
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId();
-  items[id] = text;
-  callback(null, { id, text });
+  counter.getNextUniqueId((err, id) => {
+    fs.writeFile(path.join(exports.dataDir, id + '.txt'), text, (err) => {
+      if (err) {
+        throw ('error creating file');
+      } else {
+        callback(null, {id, text});
+      }
+    });
+  });
 };
+
+// console.log(id);
+// items[id] = text;
+// fs.writeFile(id + '.txt', text, (err) => {
+//   if (err) {
+//     throw ('error creating file');
+//   } else {
+//     callback(null, {id, text});
+//   }
+// });
+// callback(null, { id, text });
+
+// instead of {00001: 'do stuff'}. it will be {text: 'do stuff'} Filename 00001.txt => 'do stuff' {text: 'do stuff'}
+// fs.writefile(filename = id, data = text, callback = () => ({text: text}))
+/* fs.writeFile(file, data, callback)
+- file: filename
+- data: string or a buffer
+- callback (err)
+*/
+
+
+
 
 // returns all the todo lists data in an array of objects
 // returns an empty array if there are no todos
@@ -24,6 +52,10 @@ exports.readAll = (callback) => {
   });
   callback(null, data);
 };
+
+/* use fs.readdir(path[,options], callback)
+- reads the content of a directory - callback takes in (err, files)
+- files is an array of the names of the files in directory*/
 
 // Looks up a todo item by ID
 // On success, it invoke a callback with the todo data
@@ -35,6 +67,11 @@ exports.readOne = (id, callback) => {
     callback(null, { id, text });
   }
 };
+
+/* fs.readFile(path[,options], callback)
+callback takes in (err, data)
+data - is the contents of the file
+*/
 
 // Look up a todo item by ID
 // Update todo with new values
@@ -63,6 +100,15 @@ exports.delete = (id, callback) => {
     callback();
   }
 };
+
+/* fs.unlinke(path, callback)
+- path
+- callback (err)
+
+*/
+
+
+
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 

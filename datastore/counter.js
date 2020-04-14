@@ -43,9 +43,11 @@ const writeCounter = (count, callback) => {
 
 exports.getNextUniqueId = (callback) => {
   // First need to read the file
-  return readCounter((errValue, counter) => {
+  readCounter((err, counter) => {
     counter++;
-    writeCounter(counter, callback);
+    writeCounter(counter, (err, id) => {
+      callback(err, id);
+    });
   });
 };
 
